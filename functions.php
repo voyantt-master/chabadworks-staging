@@ -1,0 +1,410 @@
+<?php
+/**
+ * chabadworks functions and definitions
+ *
+ * @link https://developer.wordpress.org/themes/basics/theme-functions/
+ *
+ * @package chabadworks
+ */
+
+if ( ! defined( '_S_VERSION' ) ) {
+	// Replace the version number of the theme on each release.
+	define( '_S_VERSION', '1.0.0' );
+}
+
+/**
+ * Sets up theme defaults and registers support for various WordPress features.
+ *
+ * Note that this function is hooked into the after_setup_theme hook, which
+ * runs before the init hook. The init hook is too late for some features, such
+ * as indicating support for post thumbnails.
+ */
+function chabadworks_setup() {
+	/*
+		* Make theme available for translation.
+		* Translations can be filed in the /languages/ directory.
+		* If you're building a theme based on chabadworks, use a find and replace
+		* to change 'chabadworks' to the name of your theme in all the template files.
+		*/
+	load_theme_textdomain( 'chabadworks', get_template_directory() . '/languages' );
+
+	// Add default posts and comments RSS feed links to head.
+	add_theme_support( 'automatic-feed-links' );
+
+	/*
+		* Let WordPress manage the document title.
+		* By adding theme support, we declare that this theme does not use a
+		* hard-coded <title> tag in the document head, and expect WordPress to
+		* provide it for us.
+		*/
+	add_theme_support( 'title-tag' );
+
+	/*
+		* Enable support for Post Thumbnails on posts and pages.
+		*
+		* @link https://developer.wordpress.org/themes/functionality/featured-images-post-thumbnails/
+		*/
+	add_theme_support( 'post-thumbnails' );
+
+	// This theme uses wp_nav_menu() in one location.
+	register_nav_menus(
+		array(
+			'menu-1' => esc_html__( 'Primary', 'chabadworks' ),
+		)
+	);
+
+	/*
+		* Switch default core markup for search form, comment form, and comments
+		* to output valid HTML5.
+		*/
+	add_theme_support(
+		'html5',
+		array(
+			'search-form',
+			'comment-form',
+			'comment-list',
+			'gallery',
+			'caption',
+			'style',
+			'script',
+		)
+	);
+
+	// Set up the WordPress core custom background feature.
+	add_theme_support(
+		'custom-background',
+		apply_filters(
+			'chabadworks_custom_background_args',
+			array(
+				'default-color' => 'ffffff',
+				'default-image' => '',
+			)
+		)
+	);
+
+	// Add theme support for selective refresh for widgets.
+	add_theme_support( 'customize-selective-refresh-widgets' );
+
+	/**
+	 * Add support for core custom logo.
+	 *
+	 * @link https://codex.wordpress.org/Theme_Logo
+	 */
+	add_theme_support(
+		'custom-logo',
+		array(
+			'height'      => 250,
+			'width'       => 250,
+			'flex-width'  => true,
+			'flex-height' => true,
+		)
+	);
+}
+add_action( 'after_setup_theme', 'chabadworks_setup' );
+
+/**
+ * Set the content width in pixels, based on the theme's design and stylesheet.
+ *
+ * Priority 0 to make it available to lower priority callbacks.
+ *
+ * @global int $content_width
+ */
+function chabadworks_content_width() {
+	$GLOBALS['content_width'] = apply_filters( 'chabadworks_content_width', 640 );
+}
+add_action( 'after_setup_theme', 'chabadworks_content_width', 0 );
+
+/**
+ * Register widget area.
+ *
+ * @link https://developer.wordpress.org/themes/functionality/sidebars/#registering-a-sidebar
+ */
+function chabadworks_widgets_init() {
+	register_sidebar(
+		array(
+			'name'          => esc_html__( 'Sidebar', 'chabadworks' ),
+			'id'            => 'sidebar-1',
+			'description'   => esc_html__( 'Add widgets here.', 'chabadworks' ),
+			'before_widget' => '<section id="%1$s" class="widget %2$s">',
+			'after_widget'  => '</section>',
+			'before_title'  => '<h2 class="widget-title">',
+			'after_title'   => '</h2>',
+		)
+	);
+}
+add_action( 'widgets_init', 'chabadworks_widgets_init' );
+
+/**
+ * Enqueue scripts and styles.
+ */
+function chabadworks_scripts() {
+	wp_enqueue_style( 'chabadworks-style', get_stylesheet_uri(), array(), _S_VERSION );
+	wp_style_add_data( 'chabadworks-style', 'rtl', 'replace' );
+
+	wp_enqueue_script( 'chabadworks-navigation', get_template_directory_uri() . '/js/navigation.js', array(), _S_VERSION, true );
+
+	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
+		wp_enqueue_script( 'comment-reply' );
+	}
+}
+add_action( 'wp_enqueue_scripts', 'chabadworks_scripts' );
+
+/**
+ * Implement the Custom Header feature.
+ */
+require get_template_directory() . '/inc/custom-header.php';
+
+/**
+ * Custom template tags for this theme.
+ */
+require get_template_directory() . '/inc/template-tags.php';
+
+/**
+ * Functions which enhance the theme by hooking into WordPress.
+ */
+require get_template_directory() . '/inc/template-functions.php';
+
+/**
+ * Customizer additions.
+ */
+require get_template_directory() . '/inc/customizer.php';
+
+/**
+ * Load Jetpack compatibility file.
+ */
+if ( defined( 'JETPACK__VERSION' ) ) {
+	require get_template_directory() . '/inc/jetpack.php';
+}
+
+/**
+ * Load WooCommerce compatibility file.
+ */
+if ( class_exists( 'WooCommerce' ) ) {
+	require get_template_directory() . '/inc/woocommerce.php';
+}
+
+/**
+ * cart is currently empty Return to home page
+ */
+
+add_filter( 'woocommerce_add_cart_item_data', 'woo_custom_add_to_cart' );
+
+function woo_custom_add_to_cart( $cart_item_data ) {
+
+    global $woocommerce;
+    $woocommerce->cart->empty_cart();
+
+    // Do nothing with the data and return
+    return $cart_item_data;
+}
+
+/**
+ * hide coupon cart
+ */
+
+function hide_coupon_field_on_cart( $enabled ) {
+    if ( is_cart() ) {
+        $enabled = false;
+    }
+    return $enabled;
+}
+add_filter( 'woocommerce_coupons_enabled', 'hide_coupon_field_on_cart' );
+
+
+
+
+
+/**
+ * packge related.
+ */
+
+function mytheme_add_woocommerce_support() {
+	add_theme_support( 'woocommerce' );
+}
+add_action( 'after_setup_theme', 'mytheme_add_woocommerce_support' );
+
+add_action('woocommerce_thankyou', 'enroll_subscriber', 10, 1);
+function enroll_subscriber( $order_id ) {
+    if ( ! $order_id )
+        return;
+
+    // Allow code execution only once 
+    if( ! get_post_meta( $order_id, '_thankyou_action_done', true ) ) {
+    	$order = wc_get_order( $order_id );
+    	$item_name = "";
+    	$chabad_house_name = "";
+
+		foreach ($order->get_items() as $item_key => $item ){
+			 $item_name  = $item->get_name();
+		}
+
+		$order_data = $order->get_data();
+		$order_date_created = $order_data['date_created']->date('Y-m-d H:i:s');
+		$order_date_last = date('Y-m-d H:i:s', strtotime('last day of this month'));
+
+		$inputs['email'] = $order_data['billing']['email']; 
+		$inputs['fname'] = $order_data['billing']['first_name']; 
+		$inputs['lname'] = $order_data['billing']['last_name']; 
+		$inputs['phone'] = $order_data['billing']['phone']; 
+		$inputs['address_1'] = $order_data['billing']['address_1']; 
+		$inputs['address_2'] = $order_data['billing']['address_2']; 
+		$inputs['city'] = $order_data['billing']['city']; 
+		$inputs['state'] = $order_data['billing']['state']; 
+		$inputs['postcode'] = $order_data['billing']['postcode']; 
+		$inputs['country'] = $order_data['billing']['country']; 
+        $inputs['subscription_name'] = $item_name; 
+        $inputs['dates']['start'] = $order_date_created; 
+        $inputs['dates']['end'] = $order_date_last;
+        $inputs['alloted_hrs'] = 80; 
+        $inputs['gress_hrs'] = 5; 
+        $inputs['renew'] = 0; 
+        $inputs['cmp'] = (get_post_meta( $order_id, 'billing_chabad_house_name' ))[0];
+       $ch = curl_init();
+
+		curl_setopt($ch, CURLOPT_URL,"https://portal.chabadworks.com/api/hubstaff/subscription");
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($inputs));
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$server_output = curl_exec($ch);
+		curl_close ($ch);
+
+    }
+}
+
+
+// Function to add "Send Enquiry" button after the subtotal
+function custom_add_send_enquiry_button() {
+    // Use a static variable to track whether the button has been added already
+    static $button_added = false;
+    
+    // If the button is already added, just return
+    if ($button_added) {
+        return;
+    }
+
+    // Iterate through the cart items
+    foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
+        // Determine if it's a variable product and get the appropriate ID
+        $id_to_check = isset($cart_item['variation_id']) && $cart_item['variation_id'] != 0 ? $cart_item['variation_id'] : $cart_item['product_id'];
+
+        // Define the button based on the ID
+        $button = '';
+        switch($id_to_check) {
+            case 121: //medallion-package 
+                $button = '<a href="https://www.chabadworks.com/staging/medallion-package" class="enquiry-btn mt-2">Send Enquiry</a>';
+                break;
+            case 184: //platinum-package
+                $button = '<a href="https://www.chabadworks.com/staging/platinum-package" class="enquiry-btn mt-2">Send Enquiry</a>';
+                break;
+            case 182: //gold-package
+                $button = '<a href="https://www.chabadworks.com/staging/gold-package" class="enquiry-btn mt-2">Send Enquiry</a>';
+                break;
+            case 180: //bronze-package
+                $button = '<a href="https://www.chabadworks.com/staging/bronze-package" class="enquiry-btn mt-2">Send Enquiry</a>';
+                break;
+            case 1333: //add-hoc-5
+                $button = '<a href="https://www.chabadworks.com/staging/add-hoc-5/" class="enquiry-btn mt-2">Send Enquiry</a>';
+                break;
+            case 1334: //add-hoc-10
+                $button = '<a href="https://www.chabadworks.com/staging/add-hoc-10" class="enquiry-btn mt-2">Send Enquiry</a>';
+                break;
+            case 1335: //add-hoc-40
+                $button = '<a href="https://www.chabadworks.com/staging/add-hoc-40" class="enquiry-btn mt-2">Send Enquiry</a>';
+                break;
+            case 1336: //add-hoc-100
+                $button = '<a href="https://www.chabadworks.com/staging/add-hoc-100" class="enquiry-btn mt-2">Send Enquiry</a>';
+                break;
+        }
+
+        // Display the button if it's set and update the flag
+        if ($button) {
+            echo $button;
+            $button_added = true;
+            break;
+        }
+    }
+}
+
+// Hook into the cart after the table (after subtotal)
+add_action('woocommerce_after_cart_table', 'custom_add_send_enquiry_button');
+
+
+
+
+//add coupon 
+function move_coupon_field_on_checkout() {
+    remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 );
+    add_action( 'woocommerce_checkout_order_review', 'woocommerce_checkout_coupon_form' );
+}
+add_action( 'wp', 'move_coupon_field_on_checkout' );
+
+//remove product details page link
+function remove_cart_product_link( $permalink, $cart_item, $cart_item_key ) {
+    return null;
+}
+add_filter( 'woocommerce_cart_item_permalink', 'remove_cart_product_link', 10, 3 );
+
+//my account page tittle
+
+function get_my_account_endpoint_title() {
+    // Check if we are on a WooCommerce page
+    if (function_exists('is_woocommerce') && is_woocommerce()) {
+        global $wp;
+		echo '<pre>';
+		print_r($wp->query_vars);
+			die();
+        // Define your endpoint titles
+        $endpoint_titles = array(
+            'orders'          => __('My Orders', 'woocommerce'),
+            'view-order'      => __('View Order', 'woocommerce'),
+            'downloads'       => __('My Downloads', 'woocommerce'),
+            'edit-account'    => __('Edit Account', 'woocommerce'),
+            'edit-address'    => __('Edit Address', 'woocommerce'),
+            'payment-methods' => __('Payment Methods', 'woocommerce'),
+            'customer-logout' => __('Logout', 'woocommerce'),
+            // Add other endpoints as needed here
+        );
+
+        // Loop through each of your endpoints to find the matching title
+        foreach ( $endpoint_titles as $endpoint => $title ) {
+            if ( isset( $wp->query_vars[$endpoint] ) ) {
+                return $title;
+            }
+        }
+    }
+
+    // Return a default title if no endpoint is found or if not on a WooCommerce page
+    return __('My Account', 'woocommerce');
+}
+
+// Hook for WordPress 'init' action
+add_action('wp', 'disable_header_on_specific_pages');  // 'wp' is used here to ensure the is_page function and query conditions are set up.
+
+function disable_header_on_specific_pages() {
+    if (is_account_page()) {
+        // If on the 'My Account' page and the user is not logged in, or if it's the lost password endpoint
+        if (!is_user_logged_in() || is_wc_endpoint_url('lost-password')) {
+            // This removes the site header
+            remove_action('wp_head', '_wp_render_title_tag', 1);  // Adjust depending on how your theme handles headers
+            // If your theme uses a different hook for the header, change it above.
+        }
+    }
+}
+
+// remove the "Dashboard" link from the My Account page navigation sidebar
+function my_custom_my_account_menu_items( $items ) {
+    unset($items['dashboard']);
+    return $items;
+}
+add_filter( 'woocommerce_account_menu_items', 'my_custom_my_account_menu_items' );
+
+
+// Remove the original "Proceed to Checkout" button from the cart-collaterals div
+remove_action('woocommerce_proceed_to_checkout', 'woocommerce_button_proceed_to_checkout', 20);
+
+// Add the "Proceed to Checkout" button below the cart-collaterals div
+add_action('woocommerce_after_cart', 'woocommerce_button_proceed_to_checkout', 20);
+
+
+
+
